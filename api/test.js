@@ -34,8 +34,11 @@ module.exports = async function handler(req, res) {
             platform: process.platform,
             environment: process.env.NODE_ENV || "development",
             hasMongoUri: !!process.env.MONGODB_URI,
+            mongoUriLength: process.env.MONGODB_URI ? process.env.MONGODB_URI.length : 0,
+            dbName: process.env.DB_NAME || "authdb",
             hasJwtSecret: !!process.env.JWT_SECRET,
             hasRefreshSecret: !!process.env.JWT_REFRESH_SECRET,
+            jwtSecretLength: process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0,
         }
 
         res.status(200).json({

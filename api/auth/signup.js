@@ -111,10 +111,26 @@ module.exports = async function handler(req, res) {
       },
     })
   } catch (error) {
-    console.error("Signup error:", error)
+    console.error("Signup error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    })
+
+    // More specific error handling
+    if (error.name === "MongoError" || error.name === "MongoServerError") {
+      return res.status(500).json({
+        success: false,
+        message: "Database connection error",
+        details: process.env.NODE_ENV === "development" ? error.message : undefined,
+      })
+    }
+
     res.status(500).json({
       success: false,
       message: "Internal server error",
+      details: process.env.NODE_ENV === "development" ? error.message : undefined,
+      timestamp: new Date().toISOString(),
     })
   }
 }
