@@ -2,6 +2,7 @@ const { connectToDatabase } = require("../../lib/database")
 const { comparePassword, generateAccessToken, generateRefreshToken, generateRememberToken } = require("../../lib/auth")
 const { validateEmail } = require("../../lib/validation")
 const { corsMiddleware } = require("../../lib/middleware")
+const { ObjectId } = require("mongodb")
 
 module.exports = async function handler(req, res) {
   // Apply CORS
@@ -63,8 +64,8 @@ module.exports = async function handler(req, res) {
     // Generate tokens
     const accessToken = generateAccessToken(user._id.toString())
     const refreshToken = rememberMe
-      ? generateRememberToken(user._id.toString())
-      : generateRefreshToken(user._id.toString())
+        ? generateRememberToken(user._id.toString())
+        : generateRefreshToken(user._id.toString())
 
     // Store refresh token in database
     await db.collection("refresh_tokens").insertOne({
@@ -76,8 +77,8 @@ module.exports = async function handler(req, res) {
 
     // Update last login
     await db
-      .collection("users")
-      .updateOne({ _id: user._id }, { $set: { lastLogin: new Date(), updatedAt: new Date() } })
+        .collection("users")
+        .updateOne({ _id: user._id }, { $set: { lastLogin: new Date(), updatedAt: new Date() } })
 
     res.status(200).json({
       success: true,
@@ -99,6 +100,7 @@ module.exports = async function handler(req, res) {
     res.status(500).json({
       success: false,
       message: "Internal server error",
+      details: process.env.NODE_ENV === "development" ? error.message : undefined,
     })
   }
 }

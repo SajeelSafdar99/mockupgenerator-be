@@ -1,5 +1,6 @@
 const { connectToDatabase } = require("../../lib/database")
 const { authenticateToken, corsMiddleware } = require("../../lib/middleware")
+const { ObjectId } = require("mongodb")
 
 module.exports = async function handler(req, res) {
   // Apply CORS
@@ -13,12 +14,16 @@ module.exports = async function handler(req, res) {
   }
 
   // Authenticate user
-  await new Promise((resolve, reject) => {
-    authenticateToken(req, res, (error) => {
-      if (error) reject(error)
-      else resolve()
+  try {
+    await new Promise((resolve, reject) => {
+      authenticateToken(req, res, (error) => {
+        if (error) reject(error)
+        else resolve()
+      })
     })
-  })
+  } catch (error) {
+    return // Error already handled by middleware
+  }
 
   try {
     // Connect to database
@@ -26,8 +31,8 @@ module.exports = async function handler(req, res) {
 
     // Get user profile
     const user = await db.collection("users").findOne(
-      { _id: new require("mongodb").ObjectId(req.user.id) },
-      { projection: { password: 0 } }, // Exclude password
+        { _id: new ObjectId(req.user.id) },
+        { projection: { password: 0 } }, // Exclude password
     )
 
     if (!user) {
@@ -56,6 +61,7 @@ module.exports = async function handler(req, res) {
     res.status(500).json({
       success: false,
       message: "Internal server error",
+      details: process.env.NODE_ENV === "development" ? error.message : undefined,
     })
   }
 }

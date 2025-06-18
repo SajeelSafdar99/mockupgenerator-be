@@ -1,6 +1,7 @@
 const { connectToDatabase } = require("../../lib/database")
 const { verifyRefreshToken, generateAccessToken } = require("../../lib/auth")
 const { corsMiddleware } = require("../../lib/middleware")
+const { ObjectId } = require("mongodb")
 
 module.exports = async function handler(req, res) {
   // Apply CORS
@@ -38,7 +39,7 @@ module.exports = async function handler(req, res) {
     // Check if refresh token exists in database
     const tokenDoc = await db.collection("refresh_tokens").findOne({
       token: refreshToken,
-      userId: new require("mongodb").ObjectId(decoded.userId),
+      userId: new ObjectId(decoded.userId),
     })
 
     if (!tokenDoc) {
@@ -73,6 +74,7 @@ module.exports = async function handler(req, res) {
     res.status(500).json({
       success: false,
       message: "Internal server error",
+      details: process.env.NODE_ENV === "development" ? error.message : undefined,
     })
   }
 }
