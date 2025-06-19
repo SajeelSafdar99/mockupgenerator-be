@@ -1,5 +1,5 @@
 const { connectToDatabase } = require("../../lib/database")
-const { authenticateToken } = require("../../lib/middleware")
+const { authenticateToken, corsMiddleware} = require("../../lib/middleware")
 const multer = require("multer")
 const { GridFSBucket, ObjectId } = require("mongodb")
 const path = require("path")
@@ -33,27 +33,10 @@ const runMiddleware = (req, res, fn) => {
     })
 }
 
-// CORS configuration
-const ALLOWED_ORIGINS = process.env.NODE_ENV === 'production'
-    ? ['https://mockgenerator-fe.vercel.app/']
-    : ['http://localhost:3000', 'http://localhost:3001']
-
-function setCorsHeaders(req, res) {
-    const origin = req.headers.origin
-
-    if (ALLOWED_ORIGINS.includes(origin) || process.env.NODE_ENV === 'development') {
-        res.setHeader('Access-Control-Allow-Origin', origin || '*')
-    }
-
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
-    res.setHeader('Access-Control-Allow-Credentials', 'true')
-    res.setHeader('Access-Control-Max-Age', '86400') // 24 hours
-}
 
 module.exports = async function handler(req, res) {
     // Set CORS headers for all requests
-    setCorsHeaders(req, res)
+    corsMiddleware(req, res, () => {})
 
     // Handle preflight OPTIONS request
     if (req.method === 'OPTIONS') {
